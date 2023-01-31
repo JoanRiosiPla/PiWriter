@@ -4,18 +4,48 @@
 //#include <functions.cpp>
 using namespace std;
 
+string typesOfWords[] = {"noun", "pronoun", "verb", "adjective", "adverb", "preposition", "conjunction", "interjection"};
+
 int main(void)
 {
-    fstream adjectives;
-    adjectives.open("words/adjectives.csv",ios::out);
-    if(!adjectives) 
+
+    // Open Files
+    fstream words[8];
+    for (int i = 0; i < sizeof(words) / sizeof(fstream); i++)
     {
-        cout<<"File creation failed";
+        words[i].open("words/" + typesOfWords[i] + ".csv", ios::in);
+        if(!words[i]) 
+        {
+            cout<<"File not found: " << typesOfWords[i] << endl
+                << "Attempting creation of file: " << typesOfWords[i] << endl;
+            words[i].open("words/" + typesOfWords[i] + ".csv", ios::out | ios::in | ios::app);
+            if (words[i])
+            {
+            cout << "Creation succesful";
+            }
+            else
+            {
+                cout << "Failed.";
+                return 1;
+            }
+            
+        }
+        else
+        {
+            cout<<"Opened " << typesOfWords[i];
+        }
+        cout << endl;
     }
-    else
+
+    //Close files
+    for (int i = 0; i < sizeof(words) / sizeof(fstream); i++)
     {
-        cout<<"New file created";
-        adjectives.close(); // Step 4: Closing file
+        words[i].close();
+        if (words[i].is_open())
+        {
+            cout << "Error while closing" << typesOfWords[i] << ", program didn't stop." << endl;
+        }
     }
+    
     return 0;
 }
