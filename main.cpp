@@ -4,235 +4,147 @@
 #include <fstream>
 #include <cmath>
 #include <string>
+#include <vector>
 //#include "functions.hpp"
 
 using namespace std;
 
-int maxSearches = 1000000;
+typedef struct
+{
+    string text = "[]";
+    string type = "[]";
+    int length = 0;
+}word;
 
-int prevWord;
-const int numberOfWordFiles = 10;
-string typesOfWords[] = {"noun", "pronoun", "verb", "adjective", "adverb", "preposition", "determiner", "conjunction", "interjection", "pi"};
+word options[9];
+word sentence[100];
 
-string findWord(fstream allWords[numberOfWordFiles], string typeOfWord, int letters, int max);
-int nameToIndex(string name);
+// TODO
+vector<word> words[8];
+string pi;
+
+void updateOptions();
+string endOfSentence();
+void flushOptions();
+void flushSentence();
+bool addToOptions(word addition);
+int lengthOfSentence();
+int lengthOfOptions();
+bool addToSentence(word input);
 
 int main(void)
 {
-    // Start rand()
-    srand((unsigned) time(NULL));
-
-    // Open Files
-    fstream words[numberOfWordFiles];
-    for (int i = 0; i < sizeof(words) / sizeof(fstream); i++)
+    flushOptions();
+    flushSentence();
+    
+    string input;
+    while (true)
     {
-        words[i].open("words/" + typesOfWords[i] + ".csv", ios::in);
-        if(!words[i]) 
+        cout << endl
+        <<"End of current text:" << endOfSentence() << endl
+        << "Chose one of the following:" << endl;
+        updateOptions();
+        for (int i = 0; i < lengthOfOptions() ; i++)
         {
-            cout<<"File not found: " << typesOfWords[i] << endl
-                << "Attempting creation of file: " << typesOfWords[i] << endl;
-            words[i].open("words/" + typesOfWords[i] + ".csv", ios::out | ios::in | ios::app);
-            if (words[i])
-            {
-            cout << "Creation succesful";
-            }
-            else
-            {
-                cout << "Failed.";
-                return 1;
-            }
-            
-        }
-        else
-        {
-            cout << "Opened " << typesOfWords[i];
+            cout << i << ": " << options[i].text;
         }
         cout << endl;
+        cin >> input;
+        addToSentence(options[input.at(0) - '0']);
     }
+}
 
-    // Get pi
-    string pi;
-    getline(words[nameToIndex("pi")], pi);
+// It's not possible to make this without human imput, we will persent the human with possible options.
 
-    prevWord = rand() % 7;
-    cout << "Random Word To Start From: " << prevWord << endl;
+void updateOptions()
+{
+    flushOptions();
+    string type = sentence[sizeof(sentence)/sizeof(*sentence) - 1].type;
+    addToOptions({"hi", "interjection", 2});
+}
 
-    for (int i = 0; i < 20; i++)
+string endOfSentence()
+{
+    string out = "";
+    if (lengthOfSentence() >= 5) out += "... ";
+    if (lengthOfSentence() >= 4) out += sentence[lengthOfSentence() - 4].text + " ";
+    if (lengthOfSentence() >= 3) out += sentence[lengthOfSentence() - 3].text + " ";
+    if (lengthOfSentence() >= 2) out += sentence[lengthOfSentence() - 2].text + " ";
+    if (lengthOfSentence() >= 1) out += sentence[lengthOfSentence() - 1].text;
+    return out;
+}
+
+void flushOptions()
+{
+    for (int i = 0; i < sizeof(options)/sizeof(*options); i++)
     {
-        string out;
-        cout << pi.at(i);
-        switch (prevWord)
-        {
-        // noun
-        case 0:
-            {
-                string tmp;
-                out += findWord(words, "verb", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("verb");
-                
-                break;
-            }
-
-        
-        // pronoun
-        case 1:
-            {
-                out += findWord(words, "adjective", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("adjective");
-                break;
-            }
-            
-        // verb
-        case 2:
-            {
-                string tmp;
-                tmp = findWord(words, "determiner", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("determiner");
-                if (tmp == "[not found]")
-                {
-                    tmp = findWord(words, "preposition", int(pi.at(i) - '0'), maxSearches);
-                    prevWord = nameToIndex("preposition");
-                }
-                out += tmp;
-                
-                break;
-            }
-            
-
-        // adjective
-        case 3:
-            {
-                out += findWord(words, "noun", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("noun");
-                break;
-            }
-            
-
-        // adverb
-        case 4:
-            {
-                out += findWord(words, "noun", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("noun");
-                break;
-            }
-
-        
-        // preposition
-        case 5:
-            {
-                out += findWord(words, "adjective", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("adjective");
-                break;
-            }
-
-
-        // determiner
-        case 6:
-            {
-                out += findWord(words, "noun", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("noun");
-                break;            
-            }
-
-
-        // conjuction
-        case 7:
-            {
-                out += findWord(words, "determiner", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("determiner");
-                break;   
-            }
-
-
-        // interjection
-        case 8:
-            {
-                out += findWord(words, "verb", int(pi.at(i) - '0'), maxSearches);
-                prevWord = nameToIndex("verb");
-                break;
-            }
-
-        }
-        out += " ";
-        cout << out;
+        options[i] = {"[empty]", "[none]", 0};
     }
+    return;
+}
 
+void flushSentence()
+{
+    for (int i = 0; i < sizeof(sentence)/sizeof(*sentence); i++)
+    {
+        sentence[i] = {"[empty]", "[none]", 0};
+    }
+    return;
+}
+
+bool addToOptions(word addition)
+{
+    for (int i = 0; i < sizeof(options)/sizeof(*options); i++)
+    {
+        if (options[i].text.at(0) == '[')
+        {
+            options[i] = addition;
+            return true;
+        }
+    }
     
+    return false;
+}
 
-    //Close files
-    for (int i = 0; i < sizeof(words) / sizeof(fstream); i++)
+bool addToSentence(word addition)
+{
+    for (int i = 0; i < sizeof(sentence)/sizeof(*sentence); i++)
     {
-        words[i].close();
-        if (words[i].is_open())
+        if (sentence[i].text.at(0) == '[')
         {
-            cout << "Error while closing" << typesOfWords[i] << ", program didn't stop." << endl;
+            sentence[i] = addition;
+            return true;
         }
     }
-
-    return 0;
+    
+    return false;
 }
 
 
-// Find first word in "words" file with "letters" number of letters
-
-string findWord(fstream allWords[numberOfWordFiles], string typeOfWord, int letters, int max)
+int lengthOfSentence()
 {
-    string word;
-
-    // cout << " " << typeOfWord << " ";
-
-    if (typeOfWord == "verb" && letters <= 1)
+    int length = 0;
+    for (int i = 0; i < sizeof(sentence)/sizeof(*sentence); i++)
     {
-        prevWord = nameToIndex("preposition");
-        return ", a";
-    }
-
-    fstream &words = allWords[nameToIndex(typeOfWord)];
-
-    for (int i = 0; i < 2; i++)
-    {
-        int chance = 5;
-        if (i == 1)
+        if (sentence[i].text.at(0) == '[')
         {
-            if (word != "[not found]")
-            {
-                break;
-            }
-            chance = 1;
+            break;
         }
-        
-        words.seekg(0);
-        int index = 0;
-        bool ready = false;
-        do
-        {
-
-            getline(words, word);
-            if (rand() % chance == 0)
-            {
-                index++;
-                ready = true;
-            }
-            else
-            {
-                ready = false;
-            }
-            
-        } while (( !ready || word.length() != letters ) && index < max);
-
-        if (index == max) word = "[not found]";
+        length++;
     }
-    return word;
+    return length;
 }
 
-int nameToIndex(string name)
+int lengthOfOptions()
 {
-    for (int i = 0; i < numberOfWordFiles; i++)
+    int length = 0;
+    for (int i = 0; i < sizeof(options)/sizeof(*options); i++)
     {
-        if (typesOfWords[i] == name)
+        if (options[i].text.at(0) == '[')
         {
-            return i;
+            break;
         }
+        length++;
     }
-    return -1;
+    return length;
 }
