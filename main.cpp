@@ -7,7 +7,6 @@
 #include <cmath>
 #include <string>
 #include <vector>
-#include <bits/stdc++.h>
 // #include "functions.hpp"
 
 using namespace std;
