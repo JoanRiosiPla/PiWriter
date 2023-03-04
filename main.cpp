@@ -7,6 +7,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <conio.h>
 // #include "functions.hpp"
 
 using namespace std;
@@ -18,8 +19,8 @@ typedef struct
     int length = 0;
 } word;
 
-word options[9];
-word sentence[100];
+vector<word> options;
+vector<word> sentence;
 
 const int numberOfWordFiles = 10;
 string typesOfWords[numberOfWordFiles] = {"noun", "pronoun", "verb", "adjective", "adverb", "preposition",
@@ -32,10 +33,8 @@ void updateOptions();
 string endOfSentence();
 void flushOptions();
 void flushSentence();
-bool addToOptions(word addition);
-int lengthOfSentence();
-int lengthOfOptions();
-bool addToSentence(word input);
+void addToOptions(word addition);
+void addToSentence(word input);
 vector<word> getWordsOfTypeAndLen(int type, int len);
 
 int main(void)
@@ -46,6 +45,8 @@ int main(void)
 
     flushOptions();
     flushSentence();
+
+    // Testing stuff
 
     // Load files into vectors.
 
@@ -85,7 +86,7 @@ int main(void)
                 {
                     string str;
                     getline(tmp, str);
-                    word idk = {str, typesOfWords[i], str.length()};
+                    word idk = {str, typesOfWords[i], (int) str.length()};
                     words[i].push_back(idk);
                 }
             }
@@ -106,20 +107,73 @@ int main(void)
         cout << "Loaded in " << time_diff << " seconds." << endl;
     }
 
+    // Usage
+    cout << endl
+    << "\033[32m" << "Usage:" << "\033[m" << endl
+    << "Chose from the list of matching words by typing the corresponding number." << endl
+    << "If you want to see the whole sentence, type " << "\033[34m" << "/sentence" << "\033[m" << "." << endl
+    << endl
+    << "Press any key to continue.";
+    getch();
+    putchar('\n');
+
     string input;
     while (true)
     {
         cout << endl
-             << "End of current text:" << endOfSentence() << endl
+             << "End of current text: " << endOfSentence() << endl
              << "Chose one of the following:" << endl;
         updateOptions();
-        for (int i = 0; i < lengthOfOptions(); i++)
+        for (int i = 0; i < options.size(); i++)
         {
             cout << i << ": " << options[i].text << endl;
         }
         cout << endl;
         cin >> input;
-        addToSentence(options[input.at(0) - '0']);
+        if (isdigit(input.at(0)))
+        {
+            if(input.length() == 1) addToSentence(options[input.at(0)- '0']);
+            if(input.length() == 2) addToSentence(options[(input.at(0) - '0') * 10 + (input.at(1) - '0')]);
+        }
+        else if (isascii(input.at(0)))
+        {
+            if (input.at(0) == '/')
+            {
+                // Commands
+
+                if (input == "/sentence")
+                {
+                    if (sentence.size() == 0) cout << "Empty sentence.";
+                    for (int i = 0; i < sentence.size(); i++)
+                    {
+                        cout << endl << sentence[i].text << " ";
+                    }
+                    putchar('\n');
+                }
+                else if (input == "/help" || input == "/usage")
+                {
+                    cout << "\033[32m" << "Usage:" << "\033[m" << endl
+                    << "Chose from the list of matching words by typing the corresponding number." << endl
+                    << "If you want to see the whole sentence, type " << "\033[34m" << "/sentence" << "\033[m" << "." << endl
+                    << endl
+                    << "Press any key to continue.";
+                    getch();
+                    putchar('\n');
+                }
+                else
+                {
+                    cout << "\033[31m" << "Unknown command " << "\033[m";
+                }
+                cout << "Press any key to continue.";
+                getch();
+            }
+            else
+            {
+                addToSentence(*(new word {input, "[userInputed]", (int) input.length()}));
+            }
+        }
+        
+
     }
 }
 
@@ -127,7 +181,6 @@ int main(void)
 void updateOptions()
 {
     flushOptions();
-    string type = sentence[lengthOfSentence() - 1].type;
     int chars = pi.at(current) - '0';
 
     for (int i = 0; i < numberOfWordFiles - 1; i++)
@@ -139,104 +192,50 @@ void updateOptions()
         }
         else if (all.size() == 2)
         {
-            for(int i = 0; i < 2; i++) addToOptions(all[rand() % all.size()]);
+            for(int i = 0; i < 2; i++) addToOptions(all[i]);
         }
         else if (all.size() == 1)
         {
-            for(int i = 0; i < 1; i++) addToOptions(all[rand() % all.size()]);
+            addToOptions(all[0]);
         }
     }
-    current++;
 }
 
 string endOfSentence()
 {
     string out = "";
-    if (lengthOfSentence() >= 5)
+    if (sentence.size() >= 5)
         out += "... ";
-    if (lengthOfSentence() >= 4)
-        out += sentence[lengthOfSentence() - 4].text + " ";
-    if (lengthOfSentence() >= 3)
-        out += sentence[lengthOfSentence() - 3].text + " ";
-    if (lengthOfSentence() >= 2)
-        out += sentence[lengthOfSentence() - 2].text + " ";
-    if (lengthOfSentence() >= 1)
-        out += sentence[lengthOfSentence() - 1].text;
+    if (sentence.size() >= 4)
+        out += sentence[sentence.size() - 4].text + " ";
+    if (sentence.size() >= 3)
+        out += sentence[sentence.size() - 3].text + " ";
+    if (sentence.size() >= 2)
+        out += sentence[sentence.size() - 2].text + " ";
+    if (sentence.size() >= 1)
+        out += sentence[sentence.size() - 1].text;
     return out;
 }
 
 void flushOptions()
 {
-    for (int i = 0; i < sizeof(options) / sizeof(*options); i++)
-    {
-        options[i] = {"[empty]", "[none]", 0};
-    }
-    return;
+    options.clear();
 }
 
 void flushSentence()
 {
-    for (int i = 0; i < sizeof(sentence) / sizeof(*sentence); i++)
-    {
-        sentence[i] = {"[empty]", "[none]", 0};
-    }
-    return;
+    sentence.clear();
 }
 
-bool addToOptions(word addition)
+void addToOptions(word addition)
 {
-    for (int i = 0; i < sizeof(options) / sizeof(*options); i++)
-    {
-        if (options[i].text.at(0) == '[')
-        {
-            options[i] = addition;
-            return true;
-        }
-    }
-
-    return false;
+    options.push_back(addition);
 }
 
-bool addToSentence(word addition)
+void addToSentence(word addition)
 {
-    for (int i = 0; i < sizeof(sentence) / sizeof(*sentence); i++)
-    {
-        if (sentence[i].text.at(0) == '[')
-        {
-            sentence[i] = addition;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-int lengthOfSentence()
-{
-    int length = 0;
-    for (int i = 0; i < sizeof(sentence) / sizeof(*sentence); i++)
-    {
-        if (sentence[i].text.at(0) == '[')
-        {
-            break;
-        }
-        length++;
-    }
-    return length;
-}
-
-int lengthOfOptions()
-{
-    int length = 0;
-    for (int i = 0; i < sizeof(options) / sizeof(*options); i++)
-    {
-        if (options[i].text.at(0) == '[')
-        {
-            break;
-        }
-        length++;
-    }
-    return length;
+    sentence.push_back(addition);
+    current++;
 }
 
 vector<word> getWordsOfTypeAndLen(int type, int len)
