@@ -36,6 +36,8 @@ void flushSentence();
 void addToOptions(word addition);
 void addToSentence(word input);
 vector<word> getWordsOfTypeAndLen(int type, int len);
+string strPi();
+string strUsage();
 
 int main(void)
 {
@@ -108,12 +110,8 @@ int main(void)
     }
 
     // Usage
-    cout << endl
-    << "\033[32m" << "Usage:" << "\033[m" << endl
-    << "Chose from the list of matching words by typing the corresponding number." << endl
-    << "If you want to see the whole sentence, type " << "\033[34m" << "/sentence" << "\033[m" << "." << endl
-    << endl
-    << "Press any key to continue.";
+    cout << strUsage();
+    cout << endl << "Press any key to continue.";
     getch();
     putchar('\n');
 
@@ -122,7 +120,8 @@ int main(void)
     {
         cout << endl
              << "End of current text: " << endOfSentence() << endl
-             << "Chose one of the following:" << endl;
+             << "Pi: " << strPi() << endl
+             << "Chose one of the following or write a word:" << endl;
         updateOptions();
         for (int i = 0; i < options.size(); i++)
         {
@@ -146,26 +145,21 @@ int main(void)
                     if (sentence.size() == 0) cout << "Empty sentence.";
                     for (int i = 0; i < sentence.size(); i++)
                     {
-                        cout << endl << sentence[i].text << " ";
+                        cout << sentence[i].text << " ";
                     }
                     putchar('\n');
                 }
                 else if (input == "/help" || input == "/usage")
                 {
-                    cout << "\033[32m" << "Usage:" << "\033[m" << endl
-                    << "Chose from the list of matching words by typing the corresponding number." << endl
-                    << "If you want to see the whole sentence, type " << "\033[34m" << "/sentence" << "\033[m" << "." << endl
-                    << endl
-                    << "Press any key to continue.";
-                    getch();
-                    putchar('\n');
+                    cout << strUsage();
                 }
                 else
                 {
                     cout << "\033[31m" << "Unknown command " << "\033[m";
                 }
-                cout << "Press any key to continue.";
+                cout << endl << "Press any key to continue.";
                 getch();
+                putchar('\n');
             }
             else
             {
@@ -248,5 +242,31 @@ vector<word> getWordsOfTypeAndLen(int type, int len)
             out.push_back(*i);
         }
     }
+    return out;
+}
+
+string strPi()
+{
+    string out = "";
+    for (int i = 1; i <= 2; i++)
+    {
+        if(current - i >= 0) out += pi.at(current - i);
+    }
+    
+    out += "\033[32m";
+    out += pi.at(current);
+    out += "\033[m";
+    out += pi.at(current + 1);
+    out += pi.at(current + 2);
+    return out;
+}
+
+string strUsage()
+{
+    string out;
+    out += "\n";
+    out += "\033[32mUsage:\033[m\n";
+    out += "Chose from the list of matching words by typing the corresponding number.\n";
+    out += "If you want to see the whole sentence, type \033[34m/sentence\033[m.\n";
     return out;
 }
