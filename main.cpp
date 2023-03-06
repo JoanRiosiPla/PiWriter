@@ -166,8 +166,6 @@ int main(void)
                 addToSentence(*(new word {input, "[userInputed]", (int) input.length()}));
             }
         }
-        
-
     }
 }
 
